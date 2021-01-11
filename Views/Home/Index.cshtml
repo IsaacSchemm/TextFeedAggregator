@@ -1,8 +1,85 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (SignInManager.IsSignedIn(User)) {
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 col-lg-7 col-xl-8 mb-4">
+                <form>
+                    <div class="form-group">
+                        <label for="exampleFormControlTextarea1">Example textarea</label>
+                        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Post</button>
+                </form>
+            </div>
+            <div class="col-md-6 col-lg-5 col-xl-4">
+                @{
+                    <div class="alert alert-primary">
+                        Showing the @(0) most recent items.
+                        <br />
+                    </div>
+                }
+
+                @{
+                    <div class="alert alert-secondary">
+                        There are no new items to display in your activity feed.
+                    </div>
+                }
+
+                @{
+                    <h1>Status Updates</h1>
+                    {
+                        <div style="clear: both; border-bottom: 1px dashed currentColor; margin-bottom: 1em">
+                            <div style="float: right; text-align: right" class="small">
+                                <a href="@("https://www.example.com")" target="_blank">
+                                    @DateTime.UtcNow.ToShortDateString()
+                                    <br />
+                                    @DateTime.UtcNow.ToLongTimeString() UTC
+                                </a>
+                            </div>
+                            <h5>
+                                <a href="@("https://www.example.com")" target="_blank">
+                                    @if ("/favicon.ico" != null) {
+                                        <img src="@("/favicon.ico")" width="50" height="50" alt="" style="margin-right: 0.25em" />
+                                    }
+                                    @("username")
+                                </a>
+                            </h5>
+                            <p>
+                                <span class="html-to-convert">
+                                    @("excerpt")
+                                </span>
+                            </p>
+                        </div>
+                    }
+                    <hr />
+                }
+
+                @{
+                    <p>
+                        @{
+                            <a class="btn btn-primary" href="Feed?key=@("key")&offset=@("lastOffset")&latest=@Uri.EscapeDataString(DateTime.UtcNow.ToString("o"))">
+                                &laquo; Previous page
+                            </a>
+                        }
+
+                        @{
+                            <a class="btn btn-primary" href="Feed?key=@("key")&offset=@("lastOffset")&latest=@Uri.EscapeDataString(DateTime.UtcNow.ToString("o"))">
+                                Next page &raquo;
+                            </a>
+                        }
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+} else {
+    <div class="text-center">
+        <h1 class="display-4">Welcome</h1>
+        <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    </div>
+}
