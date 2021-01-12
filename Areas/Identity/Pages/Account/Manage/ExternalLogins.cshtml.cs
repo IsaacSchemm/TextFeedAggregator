@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using TextFeedAggregator.Data;
 
 namespace TextFeedAggregator.Areas.Identity.Pages.Account.Manage
 {
@@ -13,13 +14,16 @@ namespace TextFeedAggregator.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly ApplicationDbContext _context;
 
         public ExternalLoginsModel(
             UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager)
+            SignInManager<IdentityUser> signInManager,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
         }
 
         public IList<UserLoginInfo> CurrentLogins { get; set; }
@@ -54,6 +58,8 @@ namespace TextFeedAggregator.Areas.Identity.Pages.Account.Manage
             {
                 return NotFound($"Unable to load user with ID 'user.Id'.");
             }
+
+            await TokenSaver.RemoveTokensAsync(_context, user, loginProvider);
 
             var result = await _userManager.RemoveLoginAsync(user, loginProvider, providerKey);
             if (!result.Succeeded)
@@ -98,6 +104,8 @@ namespace TextFeedAggregator.Areas.Identity.Pages.Account.Manage
                 StatusMessage = "The external login was not added. External logins can only be associated with one account.";
                 return RedirectToPage();
             }
+
+            await TokenSaver.UpdateTokensAsync(_context, user, info);
 
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);

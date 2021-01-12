@@ -6,16 +6,10 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace TextFeedAggregator {
-    public class TokenSaver {
-        private readonly ApplicationDbContext _context;
-
-        public TokenSaver(ApplicationDbContext context) {
-            _context = context;
-        }
-
-        public async Task UpdateTokensAsync(IdentityUser user, ExternalLoginInfo info) {
+    public static class TokenSaver {
+        public static async Task UpdateTokensAsync(ApplicationDbContext context, IdentityUser user, ExternalLoginInfo info) {
             if (info.LoginProvider == "DeviantArt") {
-                var token = await _context.UserDeviantArtTokens
+                var token = await context.UserDeviantArtTokens
                     .AsQueryable()
                     .Where(t => t.UserId == user.Id)
                     .SingleOrDefaultAsync();
@@ -23,7 +17,7 @@ namespace TextFeedAggregator {
                     token = new UserDeviantArtToken {
                         UserId = user.Id
                     };
-                    _context.UserDeviantArtTokens.Add(token);
+                    context.UserDeviantArtTokens.Add(token);
                 }
                 token.AccessToken = info.AuthenticationTokens
                     .Where(t => t.Name == "access_token")
@@ -33,9 +27,9 @@ namespace TextFeedAggregator {
                     .Where(t => t.Name == "refresh_token")
                     .Select(t => t.Value)
                     .Single();
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             } else if (info.LoginProvider == "Twitter") {
-                var token = await _context.UserTwitterTokens
+                var token = await context.UserTwitterTokens
                     .AsQueryable()
                     .Where(t => t.UserId == user.Id)
                     .SingleOrDefaultAsync();
@@ -43,7 +37,7 @@ namespace TextFeedAggregator {
                     token = new UserTwitterToken {
                         UserId = user.Id
                     };
-                    _context.UserTwitterTokens.Add(token);
+                    context.UserTwitterTokens.Add(token);
                 }
                 token.AccessToken = info.AuthenticationTokens
                     .Where(t => t.Name == "access_token")
@@ -53,9 +47,9 @@ namespace TextFeedAggregator {
                     .Where(t => t.Name == "access_token_secret")
                     .Select(t => t.Value)
                     .Single();
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             } else if (new[] { "mastodon.social", "mastodon.technology" }.Contains(info.LoginProvider)) {
-                var token = await _context.UserMastodonTokens
+                var token = await context.UserMastodonTokens
                     .AsQueryable()
                     .Where(t => t.UserId == user.Id)
                     .SingleOrDefaultAsync();
@@ -64,44 +58,44 @@ namespace TextFeedAggregator {
                         UserId = user.Id,
                         Host = info.LoginProvider
                     };
-                    _context.UserMastodonTokens.Add(token);
+                    context.UserMastodonTokens.Add(token);
                 }
                 token.AccessToken = info.AuthenticationTokens
                     .Where(t => t.Name == "access_token")
                     .Select(t => t.Value)
                     .Single();
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
         }
 
-        public async Task RemoveTokensAsync(IdentityUser user, string loginProvider) {
+        public static async Task RemoveTokensAsync(ApplicationDbContext context, IdentityUser user, string loginProvider) {
             if (loginProvider == "DeviantArt") {
-                var token = await _context.UserDeviantArtTokens
+                var token = await context.UserDeviantArtTokens
                     .AsQueryable()
                     .Where(t => t.UserId == user.Id)
                     .SingleOrDefaultAsync();
                 if (token != null) {
-                    _context.Remove(token);
-                    await _context.SaveChangesAsync();
+                    context.Remove(token);
+                    await context.SaveChangesAsync();
                 }
             } else if (loginProvider == "Twitter") {
-                var token = await _context.UserTwitterTokens
+                var token = await context.UserTwitterTokens
                     .AsQueryable()
                     .Where(t => t.UserId == user.Id)
                     .SingleOrDefaultAsync();
                 if (token != null) {
-                    _context.Remove(token);
-                    await _context.SaveChangesAsync();
+                    context.Remove(token);
+                    await context.SaveChangesAsync();
                 }
             } else if (new[] { "mastodon.social", "mastodon.technology" }.Contains(loginProvider)) {
-                var tokens = await _context.UserMastodonTokens
+                var tokens = await context.UserMastodonTokens
                     .AsQueryable()
                     .Where(t => t.UserId == user.Id)
                     .Where(t => t.Host == loginProvider)
                     .ToListAsync();
                 if (tokens.Any()) {
-                    _context.RemoveRange(tokens);
-                    await _context.SaveChangesAsync();
+                    context.RemoveRange(tokens);
+                    await context.SaveChangesAsync();
                 }
             }
         }
