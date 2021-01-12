@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
+@model FeedViewModel
 @{
     ViewData["Title"] = "Home Page";
 }
@@ -10,48 +11,48 @@
             <div class="col-md-6 col-lg-7 col-xl-8 mb-4">
                 <form>
                     <div class="form-group">
-                        <label for="exampleFormControlTextarea1">Example textarea</label>
-                        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                        <label for="txtMessage">Message</label>
+                        <textarea class="form-control" id="txtMessage" name="message" rows="3"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">Post</button>
                 </form>
             </div>
             <div class="col-md-6 col-lg-5 col-xl-4">
-                @{
+                @if (Model.HasMore) {
                     <div class="alert alert-primary">
-                        Showing the @(0) most recent items.
+                        Showing the @Model.FeedItems.Count() most recent items.
                         <br />
                     </div>
                 }
 
-                @{
+                @if (!Model.FeedItems.Any()) {
                     <div class="alert alert-secondary">
                         There are no new items to display in your activity feed.
                     </div>
                 }
 
-                @{
+                @if (Model.FeedItems.Any()) {
                     <h1>Status Updates</h1>
-                    {
+                    @foreach (var s in Model.FeedItems) {
                         <div style="clear: both; border-bottom: 1px dashed currentColor; margin-bottom: 1em">
                             <div style="float: right; text-align: right" class="small">
-                                <a href="@("https://www.example.com")" target="_blank">
-                                    @DateTime.UtcNow.ToShortDateString()
+                                <a href="@s.LinkUrl" target="_blank">
+                                    @s.Timestamp.UtcDateTime.ToShortDateString()
                                     <br />
-                                    @DateTime.UtcNow.ToLongTimeString() UTC
+                                    @s.Timestamp.UtcDateTime.ToLongTimeString() UTC
                                 </a>
                             </div>
                             <h5>
-                                <a href="@("https://www.example.com")" target="_blank">
-                                    @if ("/favicon.ico" != null) {
-                                        <img src="@("/favicon.ico")" width="50" height="50" alt="" style="margin-right: 0.25em" />
+                                <a href="@s.LinkUrl" target="_blank">
+                                    @if (s.Author.AvatarUrl != null) {
+                                        <img src="@s.Author.AvatarUrl" width="50" height="50" alt="" style="margin-right: 0.25em" />
                                     }
-                                    @("username")
+                                    @s.Author.Username
                                 </a>
                             </h5>
                             <p>
                                 <span class="html-to-convert">
-                                    @("excerpt")
+                                    @s.Html
                                 </span>
                             </p>
                         </div>
@@ -59,16 +60,16 @@
                     <hr />
                 }
 
-                @{
+                @if (Model.HasMore || Model.HasLess) {
                     <p>
-                        @{
-                            <a class="btn btn-primary" href="Feed?key=@("key")&offset=@("lastOffset")&latest=@Uri.EscapeDataString(DateTime.UtcNow.ToString("o"))">
+                        @if (Model.HasLess) {
+                            <a class="btn btn-primary" href="Feed?key=@Model.Key&offset=@Model.LastOffset&latest=@Uri.EscapeDataString(Model.Latest.ToString("o"))">
                                 &laquo; Previous page
                             </a>
                         }
 
-                        @{
-                            <a class="btn btn-primary" href="Feed?key=@("key")&offset=@("lastOffset")&latest=@Uri.EscapeDataString(DateTime.UtcNow.ToString("o"))">
+                        @if (Model.HasMore) {
+                            <a class="btn btn-primary" href="Feed?key=@Model.Key&offset=@Model.NextOffset&latest=@Uri.EscapeDataString(Model.Latest.ToString("o"))">
                                 Next page &raquo;
                             </a>
                         }

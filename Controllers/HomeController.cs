@@ -16,7 +16,15 @@ namespace TextFeedAggregator.Controllers {
         }
 
         public IActionResult Index() {
-            return View();
+            return View(new FeedViewModel {
+                FeedItems = System.Collections.Immutable.ImmutableList<FeedItem>.Empty,
+                HasLess = false,
+                HasMore = false,
+                NextOffset = null,
+                Key = Guid.NewGuid(),
+                LastOffset = null,
+                Latest = DateTimeOffset.UtcNow
+            });
         }
 
         public IActionResult Privacy() {
