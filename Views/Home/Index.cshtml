@@ -8,32 +8,36 @@
 @if (SignInManager.IsSignedIn(User)) {
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-6 col-lg-7 col-xl-8 mb-4">
-                <form>
-                    <div class="form-group">
-                        <label for="txtMessage">Message</label>
-                        <textarea class="form-control" id="txtMessage" name="message" rows="3"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Post</button>
-                </form>
-            </div>
-            <div class="col-md-6 col-lg-5 col-xl-4">
+            @if (Model.HasLess) {
+                <div class="col-lg-3"></div>
+            } else {
+                <div class="col-lg-6 mb-4">
+                    <form>
+                        <div class="form-group">
+                            <label for="txtMessage">Message</label>
+                            <textarea class="form-control" id="txtMessage" name="message" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Post</button>
+                    </form>
+                </div>
+            }
+            <div class="col-lg-6">
                 @if (Model.HasMore) {
                     <div class="alert alert-primary">
-                        Showing the @Model.FeedItems.Count() most recent items.
+                        Showing the @Model.StatusUpdates.Count() most recent items.
                         <br />
                     </div>
                 }
 
-                @if (!Model.FeedItems.Any()) {
+                @if (!Model.StatusUpdates.Any()) {
                     <div class="alert alert-secondary">
                         There are no new items to display in your activity feed.
                     </div>
                 }
 
-                @if (Model.FeedItems.Any()) {
+                @if (Model.StatusUpdates.Any()) {
                     <h1>Status Updates</h1>
-                    @foreach (var s in Model.FeedItems) {
+                    @foreach (var s in Model.StatusUpdates) {
                         <div style="clear: both; border-bottom: 1px dashed currentColor; margin-bottom: 1em">
                             <div style="float: right; text-align: right" class="small">
                                 <a href="@s.LinkUrl" target="_blank">
@@ -63,13 +67,13 @@
                 @if (Model.HasMore || Model.HasLess) {
                     <p>
                         @if (Model.HasLess) {
-                            <a class="btn btn-primary" href="Feed?key=@Model.Key&offset=@Model.LastOffset&latest=@Uri.EscapeDataString(Model.Latest.ToString("o"))">
+                            <a class="btn btn-primary" href="/?key=@Model.Key&offset=@Model.LastOffset&latest=@Uri.EscapeDataString(Model.Latest.ToString("o"))">
                                 &laquo; Previous page
                             </a>
                         }
 
                         @if (Model.HasMore) {
-                            <a class="btn btn-primary" href="Feed?key=@Model.Key&offset=@Model.NextOffset&latest=@Uri.EscapeDataString(Model.Latest.ToString("o"))">
+                            <a class="btn btn-primary" href="/?key=@Model.Key&offset=@Model.NextOffset&latest=@Uri.EscapeDataString(Model.Latest.ToString("o"))">
                                 Next page &raquo;
                             </a>
                         }

@@ -1,29 +1,60 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using TextFeedAggregator.Backend;
 using TextFeedAggregator.Models;
 
 namespace TextFeedAggregator.Controllers {
     public class HomeController : Controller {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger) {
-            _logger = logger;
+        public record ControllerCacheItem {
+            public Guid Id { get; init; }
+            public string LocalUserId { get; init; }
+            public Author RemoteUser { get; init; }
+            public AsyncEnumerableCache<StatusUpdate> StatusUpdates { get; init; }
+            public string NotificationsUrl { get; init; }
         }
 
-        public IActionResult Index() {
+        protected UserManager<IdentityUser> _userManager;
+        protected IMemoryCache _cache; 
+
+        public HomeController(UserManager<IdentityUser> userManager, IMemoryCache cache) {
+            _userManager = userManager;
+            _cache = cache;
+        }
+
+        public async Task<IActionResult> Index(int offset = 0, int limit = 25, DateTimeOffset? latest = null, Guid? key = null) {
+            string userId = _userManager.GetUserId(User);
+
+            ControllerCacheItem cacheItem;
+            if (key != null && _cache.TryGetValue(key, out object o) && o is ControllerCacheItem c && c.LocalUserId == userId) {
+                cacheItem = c;
+            } else {
+                var source = new EmptySource();
+                cacheItem = new ControllerCacheItem {
+                    Id = Guid.NewGuid(),
+                    LocalUserId = userId,
+                    RemoteUser = await source.GetAuthenticatedUserAsync(),
+                    StatusUpdates = new AsyncEnumerableCache<StatusUpdate>(source.GetStatusUpdatesAsync()),
+                    NotificationsUrl = source.NotificationsUrl
+                };
+                _cache.Set(cacheItem.Id, cacheItem, DateTimeOffset.UtcNow.AddMinutes(15));
+            }
+
+            var page = await cacheItem.StatusUpdates.Skip(offset).Take(limit).ToListAsync();
+            bool hasMore = await cacheItem.StatusUpdates.Skip(offset + limit).AnyAsync();
+
             return View(new FeedViewModel {
-                FeedItems = System.Collections.Immutable.ImmutableList<FeedItem>.Empty,
-                HasLess = false,
-                HasMore = false,
-                NextOffset = null,
-                Key = Guid.NewGuid(),
-                LastOffset = null,
-                Latest = DateTimeOffset.UtcNow
+                Key = cacheItem.Id,
+                Latest = latest ?? page.Select(x => x.Timestamp).DefaultIfEmpty(DateTimeOffset.MinValue).First(),
+                StatusUpdates = page,
+                LastOffset = Math.Max(offset - limit, 0),
+                HasLess = offset > 0,
+                NextOffset = offset + limit,
+                HasMore = hasMore
             });
         }
 
