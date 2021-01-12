@@ -28,6 +28,31 @@ namespace TextFeedAggregator {
                     Configuration.GetConnectionString("DefaultConnection"),
                     o => o.EnableRetryOnFailure()));
             services.AddDatabaseDeveloperPageExceptionFilter();
+            services.AddAuthentication()
+                .AddDeviantArt(d => {
+                    d.Scope.Add("browse");
+                    d.Scope.Add("message");
+                    d.Scope.Add("user.manage");
+                    d.ClientId = Configuration["Authentication:DeviantArt:ClientId"];
+                    d.ClientSecret = Configuration["Authentication:DeviantArt:ClientSecret"];
+                    d.SaveTokens = true;
+                })
+                .AddMastodon("mastodon.social", o => {
+                    o.Scope.Add("read:statuses");
+                    o.Scope.Add("write:statuses");
+                    o.Scope.Add("read:notifications");
+                    o.ClientId = Configuration["Authentication:Mastodon:mastodon.social:client_id"];
+                    o.ClientSecret = Configuration["Authentication:Mastodon:mastodon.social:client_secret"];
+                    o.SaveTokens = true;
+                })
+                .AddMastodon("mastodon.technology", o => {
+                    o.Scope.Add("read:statuses");
+                    o.Scope.Add("write:statuses");
+                    o.Scope.Add("read:notifications");
+                    o.ClientId = Configuration["Authentication:Mastodon:mastodon.technology:client_id"];
+                    o.ClientSecret = Configuration["Authentication:Mastodon:mastodon.technology:client_secret"];
+                    o.SaveTokens = true;
+                });
 
             services.AddDefaultIdentity<IdentityUser>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
