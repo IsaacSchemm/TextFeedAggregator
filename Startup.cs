@@ -1,3 +1,5 @@
+using DeviantArtFs;
+using Ganss.XSS;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -55,6 +57,26 @@ namespace TextFeedAggregator {
                     o.ClientSecret = Configuration["Authentication:Mastodon:mastodon.technology:client_secret"];
                     o.SaveTokens = true;
                 });
+
+            services.AddSingleton(new DeviantArtApp(
+                Configuration["Authentication:DeviantArt:ClientId"],
+                Configuration["Authentication:DeviantArt:ClientSecret"]));
+
+            var sanitizer = new HtmlSanitizer();
+            sanitizer.AllowedTags.Clear();
+            foreach (string tag in "b strong i em br p div a img".Split(' ')) {
+                sanitizer.AllowedTags.Add(tag);
+            }
+            sanitizer.AllowedAttributes.Clear();
+            foreach (string tag in "src href alt title".Split(' ')) {
+                sanitizer.AllowedAttributes.Add(tag);
+            }
+            sanitizer.AllowedClasses.Clear();
+            sanitizer.AllowedAtRules.Clear();
+            sanitizer.RemovingAttribute += (sender, e) => {
+                System.Diagnostics.Debug.WriteLine("Removing: " + e.Attribute.Name + "=" + e.Attribute.Value);
+            };
+            services.AddSingleton(sanitizer);
 
             services.AddDefaultIdentity<IdentityUser>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();

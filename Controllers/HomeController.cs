@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using DeviantArtFs;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using TextFeedAggregator.Backend;
+using TextFeedAggregator.Data;
 using TextFeedAggregator.Models;
 
 namespace TextFeedAggregator.Controllers {
@@ -18,10 +21,14 @@ namespace TextFeedAggregator.Controllers {
             public string NotificationsUrl { get; init; }
         }
 
+        protected ApplicationDbContext _context;
+        protected DeviantArtApp _deviantArtApp;
         protected UserManager<IdentityUser> _userManager;
         protected IMemoryCache _cache; 
 
-        public HomeController(UserManager<IdentityUser> userManager, IMemoryCache cache) {
+        public HomeController(ApplicationDbContext context, DeviantArtApp deviantArtApp, UserManager<IdentityUser> userManager, IMemoryCache cache) {
+            _context = context;
+            _deviantArtApp = deviantArtApp;
             _userManager = userManager;
             _cache = cache;
         }
@@ -33,7 +40,17 @@ namespace TextFeedAggregator.Controllers {
             if (key != null && _cache.TryGetValue(key, out object o) && o is ControllerCacheItem c && c.LocalUserId == userId) {
                 cacheItem = c;
             } else {
-                var source = new EmptySource();
+                var token = await _context.UserDeviantArtTokens
+                    .AsQueryable()
+                    .Where(t => t.UserId == userId)
+                    .FirstOrDefaultAsync();
+                ISource source;
+                if (token != null) {
+                    var d = new DeviantArtTokenWrapper(_deviantArtApp, _context, token);
+                    source = new DeviantArtSource(d);
+                } else {
+                    source = new EmptySource();
+                }
                 cacheItem = new ControllerCacheItem {
                     Id = Guid.NewGuid(),
                     LocalUserId = userId,

@@ -8,7 +8,5 @@ namespace TextFeedAggregator.Backend {
 
         Task<Author> GetAuthenticatedUserAsync();
         IAsyncEnumerable<StatusUpdate> GetStatusUpdatesAsync();
-
-        Task DeleteStatusUpdateAsync(string id);
     }
 }

@@ -1,5 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Ganss.XSS
 @inject SignInManager<IdentityUser> SignInManager
+@inject HtmlSanitizer sanitizer
 @model FeedViewModel
 @{
     ViewData["Title"] = "Home Page";
@@ -38,7 +40,7 @@
                 @if (Model.StatusUpdates.Any()) {
                     <h1>Status Updates</h1>
                     @foreach (var s in Model.StatusUpdates) {
-                        <div style="clear: both; border-bottom: 1px dashed currentColor; margin-bottom: 1em">
+                        <div style="clear: both; border-bottom: 1px dashed currentColor; padding-bottom: 1em; margin-bottom: 1em" class="status">
                             <div style="float: right; text-align: right" class="small">
                                 <a href="@s.LinkUrl" target="_blank">
                                     @s.Timestamp.UtcDateTime.ToShortDateString()
@@ -49,16 +51,12 @@
                             <h5>
                                 <a href="@s.LinkUrl" target="_blank">
                                     @if (s.Author.AvatarUrl != null) {
-                                        <img src="@s.Author.AvatarUrl" width="50" height="50" alt="" style="margin-right: 0.25em" />
+                                        <img src="@s.Author.AvatarUrl" width="50" height="50" alt="" style="margin-right: 0.25em" class="avatar" />
                                     }
                                     @s.Author.Username
                                 </a>
                             </h5>
-                            <p>
-                                <span class="html-to-convert">
-                                    @s.Html
-                                </span>
-                            </p>
+                            @Html.Raw(sanitizer.Sanitize(s.Html))
                         </div>
                     }
                     <hr />
@@ -82,6 +80,14 @@
             </div>
         </div>
     </div>
+
+    <style type="text/css">
+        .status img:not(.avatar) {
+            width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+        }
+    </style>
 } else {
     <div class="text-center">
         <h1 class="display-4">Welcome</h1>

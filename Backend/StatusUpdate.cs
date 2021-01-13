@@ -2,8 +2,8 @@
 
 namespace TextFeedAggregator.Backend {
     public record StatusUpdate {
-        string SourceIdentifier { get; init; }
-        string Id { get; init; }
+        public string SourceIdentifier { get; init; }
+        public string Id { get; init; }
         public Author Author { get; init; }
         public DateTimeOffset Timestamp { get; init; }
         public string RepostedFrom { get; init; }
