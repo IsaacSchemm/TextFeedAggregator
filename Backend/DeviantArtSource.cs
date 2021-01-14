@@ -3,6 +3,7 @@ using DeviantArtFs.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TextFeedAggregator.Backend {
     public class DeviantArtSource : ISource {
@@ -12,13 +13,13 @@ namespace TextFeedAggregator.Backend {
             _token = token;
         }
 
-        public IEnumerable<string> SourceIdentifiers => new[] { "deviantart" };
+        public IEnumerable<string> Hosts => new[] { "deviantart.com" };
 
         public async IAsyncEnumerable<StatusUpdate> GetStatusUpdatesAsync() {
             await foreach (var p in DeviantArtFs.Api.Browse.AsyncGetPostsByDeviantsYouWatch(_token, 0).ToAsyncEnumerable()) {
                 if (p.status.OrNull() is DeviantArtStatus s) {
                     yield return new StatusUpdate {
-                        SourceIdentifier = "deviantart",
+                        Host = "deviantart.com",
                         Id = s.statusid.OrNull()?.ToString(),
                         Author = s.author.OrNull() is DeviantArtUser a
                             ? new Author {
@@ -37,6 +38,13 @@ namespace TextFeedAggregator.Backend {
                     };
                 }
             }
+        }
+
+        public async Task PostStatusUpdateAsync(string host, string text) {
+            if (!Hosts.Contains(host))
+                throw new ArgumentException("Given host is not supported by this source", nameof(host));
+
+            await DeviantArtFs.Api.User.AsyncPostStatus(_token, new DeviantArtFs.Api.User.StatusPostRequest(text)).StartAsTask();
         }
     }
 }

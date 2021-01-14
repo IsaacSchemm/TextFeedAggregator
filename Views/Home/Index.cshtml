@@ -13,11 +13,19 @@
             <div class="col-lg-3 hidden-md"></div>
             <div class="col-lg-6">
                 @if (!Model.HasLess) {
-                    <form class="mb-4">
+                    <form class="mb-4" asp-controller="Home" asp-action="PostStatus" method="post">
                         <div class="form-group">
                             <label for="txtMessage">Message</label>
-                            <textarea class="form-control" id="txtMessage" name="message" rows="3"></textarea>
+                            <textarea class="form-control" id="txtMessage" name="text" rows="3"></textarea>
                         </div>
+                        @foreach (string h in Model.Hosts) {
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="host" id="host-@h" value="@h">
+                                <label class="form-check-label" for="host-@h">
+                                    @h
+                                </label>
+                            </div>
+                        }
                         <button type="submit" class="btn btn-primary">Post</button>
                     </form>
                 }

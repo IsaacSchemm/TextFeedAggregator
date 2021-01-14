@@ -5,6 +5,7 @@ using TextFeedAggregator.Backend;
 namespace TextFeedAggregator.Models {
     public record FeedViewModel {
         public Guid Key { get; init; }
+        public IReadOnlyList<string> Hosts { get; init; }
         public bool HasMore { get; init; }
         public int? NextOffset { get; init; }
         public bool HasLess { get; init; }

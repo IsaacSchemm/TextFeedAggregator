@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TextFeedAggregator.Backend {
     public class CompositeSource : ISource {
-        public IEnumerable<string> SourceIdentifiers => _sources
-            .SelectMany(x => x.SourceIdentifiers)
+        public IEnumerable<string> Hosts => _sources
+            .SelectMany(x => x.Hosts)
             .Distinct();
 
         private readonly IReadOnlyList<ISource> _sources;
@@ -28,6 +29,11 @@ namespace TextFeedAggregator.Backend {
                 if (!await most_recent.MoveNextAsync())
                     enumerators.Remove(most_recent);
             }
+        }
+
+        public async Task PostStatusUpdateAsync(string host, string text) {
+            var source = _sources.Where(x => x.Hosts.Contains(host)).Single();
+            await source.PostStatusUpdateAsync(host, text);
         }
     }
 }

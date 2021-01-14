@@ -19,6 +19,7 @@ namespace TextFeedAggregator.Controllers {
         public record ControllerCacheItem {
             public Guid Id { get; init; }
             public string LocalUserId { get; init; }
+            public IReadOnlyList<string> Hosts { get; init; }
             public AsyncEnumerableCache<StatusUpdate> StatusUpdates { get; init; }
         }
 
@@ -63,14 +64,11 @@ namespace TextFeedAggregator.Controllers {
             if (key != null && _cache.TryGetValue(key, out object o) && o is ControllerCacheItem c && c.LocalUserId == userId) {
                 cacheItem = c;
             } else {
-                var token = await _context.UserDeviantArtTokens
-                    .AsQueryable()
-                    .Where(t => t.UserId == userId)
-                    .FirstOrDefaultAsync();
                 ISource source = new CompositeSource(await CollectSourcesAsync().ToListAsync());
                 cacheItem = new ControllerCacheItem {
                     Id = Guid.NewGuid(),
                     LocalUserId = userId,
+                    Hosts = source.Hosts.ToList(),
                     StatusUpdates = new AsyncEnumerableCache<StatusUpdate>(source.GetStatusUpdatesAsync())
                 };
                 _cache.Set(cacheItem.Id, cacheItem, DateTimeOffset.UtcNow.AddMinutes(15));
@@ -81,6 +79,7 @@ namespace TextFeedAggregator.Controllers {
 
             return View(new FeedViewModel {
                 Key = cacheItem.Id,
+                Hosts = cacheItem.Hosts,
                 Latest = latest ?? page.Select(x => x.Timestamp).DefaultIfEmpty(DateTimeOffset.MinValue).First(),
                 StatusUpdates = page,
                 LastOffset = Math.Max(offset - limit, 0),
@@ -90,8 +89,11 @@ namespace TextFeedAggregator.Controllers {
             });
         }
 
-        public IActionResult Privacy() {
-            return View();
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> PostStatus(string host, string text) {
+            ISource source = new CompositeSource(await CollectSourcesAsync().ToListAsync());
+            await source.PostStatusUpdateAsync(host, text);
+            return RedirectToAction(nameof(Index));
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
