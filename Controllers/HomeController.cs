@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Pleronet;
+using Pleronet.Entities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -41,6 +43,16 @@ namespace TextFeedAggregator.Controllers {
             if (da != null) {
                 var w = new DeviantArtTokenWrapper(_deviantArtApp, _context, da);
                 yield return new DeviantArtSource(w);
+            }
+            var mastodon = await _context.UserMastodonTokens
+                .AsQueryable()
+                .Where(t => t.UserId == userId)
+                .ToListAsync();
+            foreach (var m in mastodon) {
+                var client = new MastodonClient(
+                    new AppRegistration { Instance = m.Host },
+                    new Auth { AccessToken = m.AccessToken });
+                yield return new MastodonSource(client);
             }
         }
 

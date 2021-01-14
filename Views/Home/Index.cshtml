@@ -10,20 +10,18 @@
 @if (SignInManager.IsSignedIn(User)) {
     <div class="container-fluid">
         <div class="row">
-            @if (Model.HasLess) {
-                <div class="col-lg-3"></div>
-            } else {
-                <div class="col-lg-6 mb-4">
-                    <form>
+            <div class="col-lg-3 hidden-md"></div>
+            <div class="col-lg-6">
+                @if (!Model.HasLess) {
+                    <form class="mb-4">
                         <div class="form-group">
                             <label for="txtMessage">Message</label>
                             <textarea class="form-control" id="txtMessage" name="message" rows="3"></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">Post</button>
                     </form>
-                </div>
-            }
-            <div class="col-lg-6">
+                }
+
                 @if (Model.HasMore) {
                     <div class="alert alert-primary">
                         Showing the @Model.StatusUpdates.Count() most recent items.
@@ -49,7 +47,7 @@
                                 </a>
                             </div>
                             <h5>
-                                <a href="@s.LinkUrl" target="_blank">
+                                <a href="@s.Author.ProfileUrl" target="_blank">
                                     @if (s.Author.AvatarUrl != null) {
                                         <img src="@s.Author.AvatarUrl" width="50" height="50" alt="" style="margin-right: 0.25em" class="avatar" />
                                     }
