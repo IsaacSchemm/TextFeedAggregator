@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,9 +17,7 @@ namespace TextFeedAggregator.Controllers {
         public record ControllerCacheItem {
             public Guid Id { get; init; }
             public string LocalUserId { get; init; }
-            public Author RemoteUser { get; init; }
             public AsyncEnumerableCache<StatusUpdate> StatusUpdates { get; init; }
-            public string NotificationsUrl { get; init; }
         }
 
         protected ApplicationDbContext _context;
@@ -33,6 +32,18 @@ namespace TextFeedAggregator.Controllers {
             _cache = cache;
         }
 
+        private async IAsyncEnumerable<ISource> CollectSourcesAsync() {
+            string userId = _userManager.GetUserId(User);
+            var da = await _context.UserDeviantArtTokens
+                .AsQueryable()
+                .Where(t => t.UserId == userId)
+                .FirstOrDefaultAsync();
+            if (da != null) {
+                var w = new DeviantArtTokenWrapper(_deviantArtApp, _context, da);
+                yield return new DeviantArtSource(w);
+            }
+        }
+
         public async Task<IActionResult> Index(int offset = 0, int limit = 25, DateTimeOffset? latest = null, Guid? key = null) {
             string userId = _userManager.GetUserId(User);
 
@@ -44,19 +55,11 @@ namespace TextFeedAggregator.Controllers {
                     .AsQueryable()
                     .Where(t => t.UserId == userId)
                     .FirstOrDefaultAsync();
-                ISource source;
-                if (token != null) {
-                    var d = new DeviantArtTokenWrapper(_deviantArtApp, _context, token);
-                    source = new DeviantArtSource(d);
-                } else {
-                    source = new EmptySource();
-                }
+                ISource source = new CompositeSource(await CollectSourcesAsync().ToListAsync());
                 cacheItem = new ControllerCacheItem {
                     Id = Guid.NewGuid(),
                     LocalUserId = userId,
-                    RemoteUser = await source.GetAuthenticatedUserAsync(),
-                    StatusUpdates = new AsyncEnumerableCache<StatusUpdate>(source.GetStatusUpdatesAsync()),
-                    NotificationsUrl = source.NotificationsUrl
+                    StatusUpdates = new AsyncEnumerableCache<StatusUpdate>(source.GetStatusUpdatesAsync())
                 };
                 _cache.Set(cacheItem.Id, cacheItem, DateTimeOffset.UtcNow.AddMinutes(15));
             }
