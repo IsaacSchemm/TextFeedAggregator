@@ -31,6 +31,11 @@ namespace TextFeedAggregator.Backend {
             }
         }
 
+        public async Task<IEnumerable<NotificationSummary>> GetNotificationSummariesAsync() {
+            var lists = await Task.WhenAll(_sources.Select(x => x.GetNotificationSummariesAsync()));
+            return lists.SelectMany(x => x);
+        }
+
         public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
             await Task.WhenAll(_sources.Select(x => x.PostStatusUpdateAsync(hosts, text)));
         }

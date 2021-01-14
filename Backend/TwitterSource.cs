@@ -32,7 +32,7 @@ namespace TextFeedAggregator.Backend {
                         Host = Host,
                         Id = t.IdStr,
                         Author = new Author {
-                            Username = $"@{t.CreatedBy.ScreenName}",
+                            Username = t.CreatedBy.ScreenName,
                             AvatarUrl = t.CreatedBy.ProfileImageUrl,
                             ProfileUrl = $"https://twitter.com/{Uri.EscapeDataString(t.CreatedBy.ScreenName)}"
                         },
@@ -44,6 +44,18 @@ namespace TextFeedAggregator.Backend {
                 }
                 parameters.MaxId = page.Select(x => x.Id).Min() - 1;
             }
+        }
+
+        public Task<IEnumerable<NotificationSummary>> GetNotificationSummariesAsync() {
+            IEnumerable<NotificationSummary> arr = new[] {
+                new NotificationSummary {
+                    Host = Host,
+                    Count = 0,
+                    PossiblyMore = true,
+                    Url = "https://twitter.com/notifications"
+                }
+            };
+            return Task.FromResult(arr);
         }
 
         public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {

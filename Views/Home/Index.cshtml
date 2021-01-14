@@ -30,6 +30,35 @@
                         </div>
                         <button type="submit" class="btn btn-primary">Post</button>
                     </form>
+
+                    <hr />
+
+                    <p>Notifications</p>
+
+                    <p>
+                        @{
+                            bool first = true;
+
+                            foreach (var n in Model.NotificationSummaries) {
+                                //if (n.Count == 0 && !n.PossiblyMore)
+                                //    continue;
+
+                                if (!first) {
+                                    @:&middot;
+                                }
+
+                                first = false;
+
+                                string str = n.PossiblyMore && n.Count == 0 ? "" : n.PossiblyMore ? $"({n.Count}+)" : $"({n.Count})";
+
+                                <a href="@n.Url" target="_blank">
+                                    @n.Host @str
+                                </a>
+                            }
+                        }
+                    </p>
+
+                    <hr />
                 }
 
                 @if (Model.HasMore) {

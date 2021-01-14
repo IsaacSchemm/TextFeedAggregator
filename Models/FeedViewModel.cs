@@ -10,6 +10,7 @@ namespace TextFeedAggregator.Models {
         public int? NextOffset { get; init; }
         public bool HasLess { get; init; }
         public int? LastOffset { get; init; }
+        public IReadOnlyList<NotificationSummary> NotificationSummaries { get; init; }
         public IReadOnlyList<StatusUpdate> StatusUpdates { get; init; }
         public DateTimeOffset Latest { get; init; }
     }

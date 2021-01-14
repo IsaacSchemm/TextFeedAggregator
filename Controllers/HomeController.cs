@@ -22,6 +22,7 @@ namespace TextFeedAggregator.Controllers {
             public Guid Id { get; init; }
             public string LocalUserId { get; init; }
             public IReadOnlyList<string> Hosts { get; init; }
+            public IReadOnlyList<NotificationSummary> NotificationSummaries { get; init; }
             public AsyncEnumerableCache<StatusUpdate> StatusUpdates { get; init; }
         }
 
@@ -89,6 +90,7 @@ namespace TextFeedAggregator.Controllers {
                     Id = Guid.NewGuid(),
                     LocalUserId = userId,
                     Hosts = source.Hosts.OrderBy(x => x).ToList(),
+                    NotificationSummaries = (await source.GetNotificationSummariesAsync()).OrderBy(x => x.Host).ToList(),
                     StatusUpdates = new AsyncEnumerableCache<StatusUpdate>(source.GetStatusUpdatesAsync())
                 };
                 _cache.Set(cacheItem.Id, cacheItem, DateTimeOffset.UtcNow.AddMinutes(15));
@@ -100,6 +102,7 @@ namespace TextFeedAggregator.Controllers {
             return View(new FeedViewModel {
                 Key = cacheItem.Id,
                 Hosts = cacheItem.Hosts,
+                NotificationSummaries = cacheItem.NotificationSummaries,
                 Latest = latest ?? page.Select(x => x.Timestamp).DefaultIfEmpty(DateTimeOffset.MinValue).First(),
                 StatusUpdates = page,
                 LastOffset = Math.Max(offset - limit, 0),

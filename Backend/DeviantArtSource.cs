@@ -42,6 +42,21 @@ namespace TextFeedAggregator.Backend {
             }
         }
 
+        public async Task<IEnumerable<NotificationSummary>> GetNotificationSummariesAsync() {
+            var messages = await DeviantArtFs.Api.Messages.AsyncGetFeed(
+                _token,
+                new DeviantArtFs.Api.Messages.MessagesFeedRequest { Stack = false },
+                Microsoft.FSharp.Core.FSharpOption<string>.None).Take(50).ThenToList().StartAsTask();
+            return new[] {
+                new NotificationSummary {
+                    Host = Host,
+                    Count = messages.Length,
+                    PossiblyMore = messages.Length >= 50,
+                    Url = "https://www.deviantart.com/notifications/feedback"
+                }
+            };
+        }
+
         public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
             if (hosts.Contains(Host))
                 await DeviantArtFs.Api.User.AsyncPostStatus(_token, new DeviantArtFs.Api.User.StatusPostRequest(text)).StartAsTask();

@@ -10,8 +10,8 @@ namespace TextFeedAggregator.Backend {
             return AsyncEnumerable.Empty<StatusUpdate>();
         }
 
-        public Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
-            return Task.CompletedTask;
-        }
+        public Task<IEnumerable<NotificationSummary>> GetNotificationSummariesAsync() => Task.FromResult(Enumerable.Empty<NotificationSummary>());
+
+        public Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) => Task.CompletedTask;
     }
 }

@@ -46,6 +46,32 @@ namespace TextFeedAggregator.Backend {
             }
         }
 
+        private async IAsyncEnumerable<Pleronet.Entities.Notification> GetNotificationsAsync() {
+            string max_id = "";
+            while (true) {
+                var notifications = await _client.GetNotifications(max_id);
+                if (!notifications.Any())
+                    break;
+
+                foreach (var n in notifications)
+                    yield return n;
+
+                max_id = notifications.NextPageMaxId;
+            }
+        }
+
+        public async Task<IEnumerable<NotificationSummary>> GetNotificationSummariesAsync() {
+            var notifications = await GetNotificationsAsync().Take(50).ToListAsync();
+            return new[] {
+                new NotificationSummary {
+                    Host = Host,
+                    Count = notifications.Count,
+                    PossiblyMore = notifications.Count >= 50,
+                    Url = $"https://{Host}"
+                }
+            };
+        }
+
         public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
             if (hosts.Contains(Host))
                 await _client.PostStatus(text);
