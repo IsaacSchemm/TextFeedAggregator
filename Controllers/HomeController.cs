@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using TextFeedAggregator.Backend;
 using TextFeedAggregator.Data;
 using TextFeedAggregator.Models;
+using Tweetinvi;
+using Tweetinvi.Models;
 
 namespace TextFeedAggregator.Controllers {
     public class HomeController : Controller {
@@ -23,14 +25,16 @@ namespace TextFeedAggregator.Controllers {
             public AsyncEnumerableCache<StatusUpdate> StatusUpdates { get; init; }
         }
 
-        protected ApplicationDbContext _context;
-        protected DeviantArtApp _deviantArtApp;
-        protected UserManager<IdentityUser> _userManager;
-        protected IMemoryCache _cache; 
+        private readonly ApplicationDbContext _context;
+        private readonly DeviantArtApp _deviantArtApp;
+        private readonly IReadOnlyConsumerCredentials _twitterCredentials;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IMemoryCache _cache; 
 
-        public HomeController(ApplicationDbContext context, DeviantArtApp deviantArtApp, UserManager<IdentityUser> userManager, IMemoryCache cache) {
+        public HomeController(ApplicationDbContext context, DeviantArtApp deviantArtApp, IReadOnlyConsumerCredentials twitterCredentials, UserManager<IdentityUser> userManager, IMemoryCache cache) {
             _context = context;
             _deviantArtApp = deviantArtApp;
+            _twitterCredentials = twitterCredentials;
             _userManager = userManager;
             _cache = cache;
         }
@@ -44,6 +48,18 @@ namespace TextFeedAggregator.Controllers {
             if (da != null) {
                 var w = new DeviantArtTokenWrapper(_deviantArtApp, _context, da);
                 yield return new DeviantArtSource(w);
+            }
+            var twitter = await _context.UserTwitterTokens
+                .AsQueryable()
+                .Where(t => t.UserId == userId)
+                .FirstOrDefaultAsync();
+            if (twitter != null) {
+                var client = new TwitterClient(
+                    _twitterCredentials.ConsumerKey,
+                    _twitterCredentials.ConsumerSecret,
+                    twitter.AccessToken,
+                    twitter.AccessTokenSecret);
+                yield return new TwitterSource(client);
             }
             var mastodon = await _context.UserMastodonTokens
                 .AsQueryable()

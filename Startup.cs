@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TextFeedAggregator.Data;
+using Tweetinvi.Models;
 
 namespace TextFeedAggregator {
     public class Startup {
@@ -39,6 +40,11 @@ namespace TextFeedAggregator {
                     d.ClientSecret = Configuration["Authentication:DeviantArt:ClientSecret"];
                     d.SaveTokens = true;
                 })
+                .AddTwitter(t => {
+                    t.ConsumerKey = Configuration["Authentication:Twitter:ConsumerKey"];
+                    t.ConsumerSecret = Configuration["Authentication:Twitter:ConsumerSecret"];
+                    t.SaveTokens = true;
+                })
                 .AddMastodon("mastodon.social", o => {
                     o.Scope.Add("read:statuses");
                     o.Scope.Add("write:statuses");
@@ -61,6 +67,9 @@ namespace TextFeedAggregator {
             services.AddSingleton(new DeviantArtApp(
                 Configuration["Authentication:DeviantArt:ClientId"],
                 Configuration["Authentication:DeviantArt:ClientSecret"]));
+            services.AddSingleton<IReadOnlyConsumerCredentials>(new ReadOnlyConsumerCredentials(
+                Configuration["Authentication:Twitter:ConsumerKey"],
+                Configuration["Authentication:Twitter:ConsumerSecret"]));
 
             var sanitizer = new HtmlSanitizer();
             sanitizer.AllowedTags.Clear();
