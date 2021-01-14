@@ -18,14 +18,16 @@
                             <label for="txtMessage">Message</label>
                             <textarea class="form-control" id="txtMessage" name="text" rows="3"></textarea>
                         </div>
-                        @foreach (string h in Model.Hosts) {
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="host" id="host-@h" value="@h">
-                                <label class="form-check-label" for="host-@h">
-                                    @h
-                                </label>
-                            </div>
-                        }
+                        <div class="form-group">
+                            @foreach (string h in Model.Hosts) {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="host" id="host-@h" value="@h">
+                                    <label class="form-check-label" for="host-@h">
+                                        Post to @h
+                                    </label>
+                                </div>
+                            }
+                        </div>
                         <button type="submit" class="btn btn-primary">Post</button>
                     </form>
                 }
@@ -46,18 +48,18 @@
                 @if (Model.StatusUpdates.Any()) {
                     <h1>Status Updates</h1>
                     @foreach (var s in Model.StatusUpdates) {
-                        <div style="clear: both; border-bottom: 1px dashed currentColor; padding-bottom: 1em; margin-bottom: 1em" class="status">
-                            <div style="float: right; text-align: right" class="small">
+                        <div class="status">
+                            <div class="direct-link small">
                                 <a href="@s.LinkUrl" target="_blank">
                                     @s.Timestamp.UtcDateTime.ToShortDateString()
                                     <br />
                                     @s.Timestamp.UtcDateTime.ToLongTimeString() UTC
                                 </a>
                             </div>
-                            <h5>
+                            <h5 class="header">
                                 <a href="@s.Author.ProfileUrl" target="_blank">
                                     @if (s.Author.AvatarUrl != null) {
-                                        <img src="@s.Author.AvatarUrl" width="50" height="50" alt="" style="margin-right: 0.25em" class="avatar" />
+                                        <img src="@s.Author.AvatarUrl" alt="" class="avatar" />
                                     }
                                     @s.Author.Username
                                 </a>
@@ -88,11 +90,33 @@
     </div>
 
     <style type="text/css">
-        .status img:not(.avatar) {
-            width: 100%;
-            max-height: 150px;
-            object-fit: contain;
+        .status {
+            clear: both;
+            border-bottom: 1px dashed currentColor;
+            padding-bottom: 1em;
+            margin-bottom: 1em;
         }
+
+            .status img.avatar {
+                width: 50px;
+                height: 50px;
+                margin-right: 0.25em;
+            }
+
+            .status img:not(.avatar) {
+                width: 100%;
+                max-height: 150px;
+                object-fit: contain;
+            }
+
+            .status > .direct-link {
+                float: right;
+                text-align: right;
+            }
+
+            .status > p:last-child {
+                margin-bottom: 0;
+            }
     </style>
 } else {
     <div class="text-center">

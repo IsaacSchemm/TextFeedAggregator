@@ -5,6 +5,6 @@ namespace TextFeedAggregator.Backend {
     public interface ISource {
         IEnumerable<string> Hosts { get; }
         IAsyncEnumerable<StatusUpdate> GetStatusUpdatesAsync();
-        Task PostStatusUpdateAsync(string host, string text);
+        Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text);
     }
 }

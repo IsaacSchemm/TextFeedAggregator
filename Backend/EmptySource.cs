@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,8 +10,8 @@ namespace TextFeedAggregator.Backend {
             return AsyncEnumerable.Empty<StatusUpdate>();
         }
 
-        public async Task PostStatusUpdateAsync(string host, string text) {
-            throw new NotImplementedException();
+        public Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
+            return Task.CompletedTask;
         }
     }
 }

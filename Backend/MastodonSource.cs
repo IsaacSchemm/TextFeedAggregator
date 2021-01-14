@@ -13,7 +13,9 @@ namespace TextFeedAggregator.Backend {
             _client = client;
         }
 
-        public IEnumerable<string> Hosts => new[] { _client.AppRegistration.Instance };
+        public string Host => _client.AppRegistration.Instance;
+
+        public IEnumerable<string> Hosts => new[] { Host };
 
         public async IAsyncEnumerable<StatusUpdate> GetStatusUpdatesAsync() {
             string max_id = "";
@@ -29,7 +31,7 @@ namespace TextFeedAggregator.Backend {
                         ProfileUrl = s.Account.ProfileUrl
                     };
                     yield return new StatusUpdate {
-                        Host = _client.AppRegistration.Instance,
+                        Host = Host,
                         Id = s.Id,
                         Author = author,
                         Timestamp = s.CreatedAt,
@@ -44,11 +46,9 @@ namespace TextFeedAggregator.Backend {
             }
         }
 
-        public async Task PostStatusUpdateAsync(string host, string text) {
-            if (!Hosts.Contains(host))
-                throw new ArgumentException("Given host is not supported by this source", nameof(host));
-
-            await _client.PostStatus(text);
+        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
+            if (hosts.Contains(Host))
+                await _client.PostStatus(text);
         }
     }
 }

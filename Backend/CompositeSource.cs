@@ -31,9 +31,8 @@ namespace TextFeedAggregator.Backend {
             }
         }
 
-        public async Task PostStatusUpdateAsync(string host, string text) {
-            var source = _sources.Where(x => x.Hosts.Contains(host)).Single();
-            await source.PostStatusUpdateAsync(host, text);
+        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
+            await Task.WhenAll(_sources.Select(x => x.PostStatusUpdateAsync(hosts, text)));
         }
     }
 }

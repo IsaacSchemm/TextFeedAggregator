@@ -57,6 +57,10 @@ namespace TextFeedAggregator.Controllers {
             }
         }
 
+        private async Task<ISource> GetCompositeSourceAsync() {
+            return new CompositeSource(await CollectSourcesAsync().ToListAsync());
+        }
+
         public async Task<IActionResult> Index(int offset = 0, int limit = 25, DateTimeOffset? latest = null, Guid? key = null) {
             string userId = _userManager.GetUserId(User);
 
@@ -64,11 +68,11 @@ namespace TextFeedAggregator.Controllers {
             if (key != null && _cache.TryGetValue(key, out object o) && o is ControllerCacheItem c && c.LocalUserId == userId) {
                 cacheItem = c;
             } else {
-                ISource source = new CompositeSource(await CollectSourcesAsync().ToListAsync());
+                ISource source = await GetCompositeSourceAsync();
                 cacheItem = new ControllerCacheItem {
                     Id = Guid.NewGuid(),
                     LocalUserId = userId,
-                    Hosts = source.Hosts.ToList(),
+                    Hosts = source.Hosts.OrderBy(x => x).ToList(),
                     StatusUpdates = new AsyncEnumerableCache<StatusUpdate>(source.GetStatusUpdatesAsync())
                 };
                 _cache.Set(cacheItem.Id, cacheItem, DateTimeOffset.UtcNow.AddMinutes(15));
@@ -90,8 +94,8 @@ namespace TextFeedAggregator.Controllers {
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> PostStatus(string host, string text) {
-            ISource source = new CompositeSource(await CollectSourcesAsync().ToListAsync());
+        public async Task<IActionResult> PostStatus(IEnumerable<string> host, string text) {
+            ISource source = await GetCompositeSourceAsync();
             await source.PostStatusUpdateAsync(host, text);
             return RedirectToAction(nameof(Index));
         }
