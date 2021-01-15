@@ -109,6 +109,11 @@
                                 </a>
                             </h5>
                             @Html.Raw(sanitizer.Sanitize(s.Html))
+                            @foreach (var image in s.AdditionalImages) {
+                                <a href="@image.LinkUrl">
+                                    <img src="@image.ImageUrl" alt="@image.AltText" class="mt-4" />
+                                </a>
+                            }
                         </div>
                     }
                     <hr />

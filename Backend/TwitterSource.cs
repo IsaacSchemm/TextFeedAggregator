@@ -22,8 +22,9 @@ namespace TextFeedAggregator.Backend {
         public async IAsyncEnumerable<StatusUpdate> GetStatusUpdatesAsync() {
             var self = await _client.Users.GetAuthenticatedUserAsync();
 
-            var parameters = new Tweetinvi.Parameters.GetHomeTimelineParameters {
-                PageSize = 100
+            var parameters = new GetHomeTimelineParameters {
+                PageSize = 100,
+                IncludeEntities = true
             };
             while (true) {
                 ITweet[] page = await _client.Timelines.GetHomeTimelineAsync(parameters);
@@ -43,6 +44,10 @@ namespace TextFeedAggregator.Backend {
                         Timestamp = t.CreatedAt,
                         LinkUrl = t.RetweetedTweet?.Url ?? t.Url,
                         Html = WebUtility.HtmlEncode(WebUtility.HtmlDecode(t.FullText ?? t.Text)),
+                        AdditionalImages = t.Entities.Medias.Where(m => m.MediaType == "photo").Select(m => new StatusUpdateMedia {
+                            ImageUrl = m.MediaURLHttps,
+                            LinkUrl = m.URL
+                        }).ToList(),
                         RepostedFrom = t.RetweetedTweet?.CreatedBy?.ScreenName
                     };
                 }

@@ -43,6 +43,11 @@ namespace TextFeedAggregator.Backend {
                         Html = !string.IsNullOrEmpty(s.SpoilerText)
                             ? WebUtility.HtmlEncode(s.SpoilerText)
                             : s.Content,
+                        AdditionalImages = s.MediaAttachments.Select(m => new StatusUpdateMedia {
+                            ImageUrl = m.Url,
+                            LinkUrl = m.Url,
+                            AltText = m.Description
+                        }).ToList(),
                         RepostedFrom = s.Reblog?.Account?.UserName
                     };
                 }
