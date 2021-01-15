@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.DeviantArt" Version="5.0.0" />
+    <PackageReference Include="DeviantArtFs" Version="7.0.1" />
     <PackageReference Include="HtmlSanitizer" Version="5.0.372" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="5.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.1" />
@@ -18,10 +19,6 @@
     <PackageReference Include="Pleronet" Version="1.0.0" />
     <PackageReference Include="System.Linq.Async" Version="5.0.0" />
     <PackageReference Include="TweetinviAPI" Version="5.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Documents\Visual Studio 2017\Projects\DeviantArtFs\DeviantArtFs\DeviantArtFs.fsproj" />
   </ItemGroup>
 
 </Project>
