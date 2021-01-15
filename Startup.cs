@@ -48,6 +48,7 @@ namespace TextFeedAggregator {
                 .AddMastodon("mastodon.social", o => {
                     o.Scope.Add("read:statuses");
                     o.Scope.Add("write:statuses");
+                    o.Scope.Add("write:media");
                     o.Scope.Add("read:accounts");
                     o.Scope.Add("read:notifications");
                     o.ClientId = Configuration["Authentication:Mastodon:mastodon.social:client_id"];
@@ -57,6 +58,7 @@ namespace TextFeedAggregator {
                 .AddMastodon("mastodon.technology", o => {
                     o.Scope.Add("read:statuses");
                     o.Scope.Add("write:statuses");
+                    o.Scope.Add("write:media");
                     o.Scope.Add("read:accounts");
                     o.Scope.Add("read:notifications");
                     o.ClientId = Configuration["Authentication:Mastodon:mastodon.technology:client_id"];

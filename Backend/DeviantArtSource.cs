@@ -64,8 +64,8 @@ namespace TextFeedAggregator.Backend {
             var stashItem = await DeviantArtFs.Api.Stash.AsyncSubmit(
                 _token,
                 new DeviantArtFs.Api.Stash.SubmitRequest(image.GenerateFilename(), image.ContentType, image.Data) {
-                    ArtistComments = image.Description ?? "Uploaded from Text Feed Aggregator",
-                    Title = $"Text Feed Aggregator Image ({DateTimeOffset.UtcNow} UTC)"
+                    ArtistComments = image.Description + " (Uploaded from Text Feed Aggregator)",
+                    Title = $"TFA-{DateTimeOffset.UtcNow:o}"
                 }).StartAsTask();
             return stashItem.itemid;
         }
