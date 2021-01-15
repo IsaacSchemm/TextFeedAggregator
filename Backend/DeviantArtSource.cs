@@ -2,6 +2,7 @@
 using DeviantArtFs.Extensions;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -58,9 +59,24 @@ namespace TextFeedAggregator.Backend {
             };
         }
 
-        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
+        private async Task<long> UploadMediaAsync(ImageAttachment image) {
+            using var ms = new MemoryStream(image.Data);
+            var stashItem = await DeviantArtFs.Api.Stash.AsyncSubmit(
+                _token,
+                new DeviantArtFs.Api.Stash.SubmitRequest(image.GenerateFilename(), image.ContentType, image.Data) {
+                    ArtistComments = image.Description ?? "Uploaded from Text Feed Aggregator",
+                    Title = $"Text Feed Aggregator Image ({DateTimeOffset.UtcNow} UTC)"
+                }).StartAsTask();
+            return stashItem.itemid;
+        }
+
+        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text, ImageAttachment image = null) {
             if (hosts.Contains(Host))
-                await DeviantArtFs.Api.User.AsyncPostStatus(_token, new DeviantArtFs.Api.User.StatusPostRequest(text)).StartAsTask();
+                await DeviantArtFs.Api.User.AsyncPostStatus(_token, new DeviantArtFs.Api.User.StatusPostRequest(text) {
+                    Stashid = image == null
+                        ? (long?)null
+                        : await UploadMediaAsync(image)
+                }).StartAsTask();
         }
 
         public Task DeleteStatusUpdateAsync(string host, string id) {

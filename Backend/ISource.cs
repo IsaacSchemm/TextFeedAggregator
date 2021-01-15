@@ -6,7 +6,7 @@ namespace TextFeedAggregator.Backend {
         IEnumerable<string> Hosts { get; }
         IAsyncEnumerable<StatusUpdate> GetStatusUpdatesAsync();
         Task<IEnumerable<NotificationSummary>> GetNotificationSummariesAsync();
-        Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text);
+        Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text, ImageAttachment image = null);
         Task DeleteStatusUpdateAsync(string host, string id);
     }
 }

@@ -13,10 +13,18 @@
             <div class="col-lg-3 hidden-md"></div>
             <div class="col-lg-6">
                 @if (!Model.HasLess) {
-                    <form class="mb-4" asp-controller="Home" asp-action="PostStatus" method="post">
+                    <form class="mb-4" asp-controller="Home" asp-action="PostStatus" method="post" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="txtMessage">Message</label>
                             <textarea class="form-control" id="txtMessage" name="text" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="imageUpload">Image (optional)</label>
+                            <input type="file" class="form-control-file" id="imageUpload" name="file" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label for="altText">Image alt text (optional)</label>
+                            <input type="text" class="form-control" id="altText" name="altText">
                         </div>
                         <div class="form-group">
                             @foreach (string h in Model.Hosts) {

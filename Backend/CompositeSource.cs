@@ -36,8 +36,8 @@ namespace TextFeedAggregator.Backend {
             return lists.SelectMany(x => x);
         }
 
-        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
-            await Task.WhenAll(_sources.Select(x => x.PostStatusUpdateAsync(hosts, text)));
+        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text, ImageAttachment image = null) {
+            await Task.WhenAll(_sources.Select(x => x.PostStatusUpdateAsync(hosts, text, image)));
         }
 
         public async Task DeleteStatusUpdateAsync(string host, string id) {

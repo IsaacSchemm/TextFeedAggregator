@@ -1,4 +1,5 @@
 ﻿using DeviantArtFs;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using Pleronet.Entities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using TextFeedAggregator.Backend;
@@ -113,9 +115,28 @@ namespace TextFeedAggregator.Controllers {
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> PostStatus(IEnumerable<string> host, string text) {
+        public async Task<IActionResult> PostStatus(IFormFileCollection file, string[] host, string text, string altText) {
             ISource source = await GetCompositeSourceAsync();
-            await source.PostStatusUpdateAsync(host, text);
+            switch (file.Count) {
+                case 0:
+                    await source.PostStatusUpdateAsync(host, text);
+                    break;
+                case 1:
+                    var f = file.Single();
+                    using (var ms = new MemoryStream()) {
+                        await f.OpenReadStream().CopyToAsync(ms);
+                        await source.PostStatusUpdateAsync(host, text, new ImageAttachment {
+                            ContentType = file.Single().ContentType,
+                            Data = ms.ToArray(),
+                            Description = string.IsNullOrWhiteSpace(altText)
+                                ? null
+                                : altText
+                        });
+                    }
+                    break;
+                default:
+                    return Content("Only one image can be uploaded.");
+            }
             return RedirectToAction(nameof(Index));
         }
 

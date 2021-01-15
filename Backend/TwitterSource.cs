@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Models;
+using Tweetinvi.Parameters;
 
 namespace TextFeedAggregator.Backend {
     public class TwitterSource : ISource {
@@ -61,9 +62,24 @@ namespace TextFeedAggregator.Backend {
             return Task.FromResult(arr);
         }
 
-        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
+        private async IAsyncEnumerable<long> UploadMediaAsync(IEnumerable<ImageAttachment> images) {
+            foreach (var i in images) {
+                var media = await _client.Upload.UploadTweetImageAsync(i.Data);
+                if (media.Id is long l)
+                    yield return l;
+            }
+        }
+
+        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text, IEnumerable<ImageAttachment> images) {
             if (hosts.Contains(Host))
-                await _client.Tweets.PublishTweetAsync(text);
+                await _client.Tweets.PublishTweetAsync(new PublishTweetParameters {
+                    Text = text,
+                    MediaIds = await UploadMediaAsync(images).ToListAsync()
+                });
+        }
+
+        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text, ImageAttachment image = null) {
+            await PostStatusUpdateAsync(hosts, text, new[] { image }.Where(x => x != null));
         }
 
         public async Task DeleteStatusUpdateAsync(string host, string id) {

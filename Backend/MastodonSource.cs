@@ -1,6 +1,7 @@
 ﻿using Pleronet;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -75,9 +76,21 @@ namespace TextFeedAggregator.Backend {
             };
         }
 
-        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
+        private async IAsyncEnumerable<string> UploadMediaAsync(IEnumerable<ImageAttachment> images) {
+            foreach (var i in images) {
+                using var ms = new MemoryStream(i.Data);
+                var media = await _client.UploadMedia(new MediaDefinition(ms, i.GenerateFilename()), description: i.Description);
+                yield return media.Id;
+            }
+        }
+
+        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text, IEnumerable<ImageAttachment> images) {
             if (hosts.Contains(Host))
-                await _client.PostStatus(text);
+                await _client.PostStatus(text, mediaIds: await UploadMediaAsync(images).ToListAsync());
+        }
+
+        public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text, ImageAttachment image = null) {
+            await PostStatusUpdateAsync(hosts, text, new[] { image }.Where(x => x != null));
         }
 
         public async Task DeleteStatusUpdateAsync(string host, string id) {
