@@ -23,6 +23,7 @@ namespace TextFeedAggregator.Backend {
                     yield return new StatusUpdate {
                         Host = Host,
                         Id = s.statusid.OrNull()?.ToString(),
+                        CanDelete = false,
                         Author = s.author.OrNull() is DeviantArtUser a
                             ? new Author {
                                 Username = a.username,
@@ -60,6 +61,10 @@ namespace TextFeedAggregator.Backend {
         public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
             if (hosts.Contains(Host))
                 await DeviantArtFs.Api.User.AsyncPostStatus(_token, new DeviantArtFs.Api.User.StatusPostRequest(text)).StartAsTask();
+        }
+
+        public Task DeleteStatusUpdateAsync(string host, string id) {
+            return Task.CompletedTask;
         }
     }
 }

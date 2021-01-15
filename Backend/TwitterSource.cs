@@ -19,6 +19,8 @@ namespace TextFeedAggregator.Backend {
         public IEnumerable<string> Hosts => new[] { Host };
 
         public async IAsyncEnumerable<StatusUpdate> GetStatusUpdatesAsync() {
+            var self = await _client.Users.GetAuthenticatedUserAsync();
+
             var parameters = new Tweetinvi.Parameters.GetHomeTimelineParameters {
                 PageSize = 100
             };
@@ -31,6 +33,7 @@ namespace TextFeedAggregator.Backend {
                     yield return new StatusUpdate {
                         Host = Host,
                         Id = t.IdStr,
+                        CanDelete = t.CreatedBy.Id == self.Id,
                         Author = new Author {
                             Username = t.CreatedBy.ScreenName,
                             AvatarUrl = t.CreatedBy.ProfileImageUrl,
@@ -61,6 +64,11 @@ namespace TextFeedAggregator.Backend {
         public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
             if (hosts.Contains(Host))
                 await _client.Tweets.PublishTweetAsync(text);
+        }
+
+        public async Task DeleteStatusUpdateAsync(string host, string id) {
+            if (host == Host)
+                await _client.Tweets.DestroyTweetAsync(long.Parse(id));
         }
     }
 }

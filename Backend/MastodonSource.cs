@@ -18,6 +18,8 @@ namespace TextFeedAggregator.Backend {
         public IEnumerable<string> Hosts => new[] { Host };
 
         public async IAsyncEnumerable<StatusUpdate> GetStatusUpdatesAsync() {
+            var self = await _client.GetCurrentUser();
+
             string max_id = "";
             while (true) {
                 var statuses = await _client.GetHomeTimeline(max_id);
@@ -33,6 +35,7 @@ namespace TextFeedAggregator.Backend {
                     yield return new StatusUpdate {
                         Host = Host,
                         Id = s.Id,
+                        CanDelete = s.Account.Id == self.Id,
                         Author = author,
                         Timestamp = s.CreatedAt,
                         LinkUrl = s.Url,
@@ -75,6 +78,11 @@ namespace TextFeedAggregator.Backend {
         public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
             if (hosts.Contains(Host))
                 await _client.PostStatus(text);
+        }
+
+        public async Task DeleteStatusUpdateAsync(string host, string id) {
+            if (host == Host)
+                await _client.DeleteStatus(id);
         }
     }
 }

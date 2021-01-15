@@ -84,6 +84,13 @@
                                     <br />
                                     @s.Timestamp.UtcDateTime.ToLongTimeString() UTC
                                 </a>
+                                @if (s.CanDelete) {
+                                    <form method="post" asp-controller="Home" asp-action="DeleteStatus">
+                                        <input type="hidden" name="host" value="@s.Host" />
+                                        <input type="hidden" name="id" value="@s.Id" />
+                                        <input type="submit" value="Delete" />
+                                    </form>
+                                }
                             </div>
                             <h5 class="header">
                                 <a href="@s.Author.ProfileUrl" target="_blank">

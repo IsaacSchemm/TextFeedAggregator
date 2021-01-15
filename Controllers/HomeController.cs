@@ -119,6 +119,13 @@ namespace TextFeedAggregator.Controllers {
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteStatus(string host, string id) {
+            ISource source = await GetCompositeSourceAsync();
+            await source.DeleteStatusUpdateAsync(host, id);
+            return RedirectToAction(nameof(Index));
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error() {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });

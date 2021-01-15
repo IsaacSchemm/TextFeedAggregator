@@ -39,5 +39,9 @@ namespace TextFeedAggregator.Backend {
         public async Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) {
             await Task.WhenAll(_sources.Select(x => x.PostStatusUpdateAsync(hosts, text)));
         }
+
+        public async Task DeleteStatusUpdateAsync(string host, string id) {
+            await Task.WhenAll(_sources.Select(x => x.DeleteStatusUpdateAsync(host, id)));
+        }
     }
 }

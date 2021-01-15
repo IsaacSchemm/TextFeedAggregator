@@ -13,5 +13,7 @@ namespace TextFeedAggregator.Backend {
         public Task<IEnumerable<NotificationSummary>> GetNotificationSummariesAsync() => Task.FromResult(Enumerable.Empty<NotificationSummary>());
 
         public Task PostStatusUpdateAsync(IEnumerable<string> hosts, string text) => Task.CompletedTask;
+
+        public Task DeleteStatusUpdateAsync(string host, string id) => Task.CompletedTask;
     }
 }
