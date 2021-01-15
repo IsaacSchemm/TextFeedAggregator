@@ -51,8 +51,8 @@ namespace TextFeedAggregator {
                     o.Scope.Add("write:media");
                     o.Scope.Add("read:accounts");
                     o.Scope.Add("read:notifications");
-                    o.ClientId = Configuration["Authentication:Mastodon:mastodon.technology:client_id"];
-                    o.ClientSecret = Configuration["Authentication:Mastodon:mastodon.technology:client_secret"];
+                    o.ClientId = Configuration["Authentication:mastodon.technology:client_id"];
+                    o.ClientSecret = Configuration["Authentication:mastodon.technology:client_secret"];
                     o.SaveTokens = true;
                 });
 
