@@ -45,16 +45,6 @@ namespace TextFeedAggregator {
                     t.ConsumerSecret = Configuration["Authentication:Twitter:ConsumerSecret"];
                     t.SaveTokens = true;
                 })
-                .AddMastodon("mastodon.social", o => {
-                    o.Scope.Add("read:statuses");
-                    o.Scope.Add("write:statuses");
-                    o.Scope.Add("write:media");
-                    o.Scope.Add("read:accounts");
-                    o.Scope.Add("read:notifications");
-                    o.ClientId = Configuration["Authentication:Mastodon:mastodon.social:client_id"];
-                    o.ClientSecret = Configuration["Authentication:Mastodon:mastodon.social:client_secret"];
-                    o.SaveTokens = true;
-                })
                 .AddMastodon("mastodon.technology", o => {
                     o.Scope.Add("read:statuses");
                     o.Scope.Add("write:statuses");
