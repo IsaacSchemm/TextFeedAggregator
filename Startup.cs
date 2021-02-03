@@ -15,6 +15,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using TextFeedAggregator.Data;
 using Tweetinvi.Models;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using System.Text.RegularExpressions;
 
 namespace TextFeedAggregator {
     public class Startup {
@@ -26,10 +28,29 @@ namespace TextFeedAggregator {
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) {
-            services.AddDbContext<ApplicationDbContext>(options =>
+            if (Environment.GetEnvironmentVariable("MYSQLCONNSTR_localdb") is string connection) {
+                services.AddDbContext<ApplicationDbContext>(options => {
+                    string dbhost = Regex.Match(connection, @"Data Source=(.+?);").Groups[1].Value;
+                    string server = dbhost.Split(':')[0].ToString();
+                    string port = dbhost.Split(':')[1].ToString();
+                    string dbname = Regex.Match(connection, @"Database=(.+?);").Groups[1].Value;
+                    string dbusername = Regex.Match(connection, @"User Id=(.+?);").Groups[1].Value;
+                    string dbpassword = Regex.Match(connection, @"Password=(.+?)$").Groups[1].Value;
+
+                    string connectionString2 = $@"server={server};userid={dbusername};password={dbpassword};database={dbname};port={port};pooling = false; convert zero datetime=True;";
+
+                    options.UseMySql(
+                        connectionString2,
+                        new MySqlServerVersion(new Version(5, 7, 9, 0)),
+                        mySqlOptions => mySqlOptions
+                            .CharSetBehavior(CharSetBehavior.NeverAppend));
+                });
+            } else {
+                services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection"),
                     o => o.EnableRetryOnFailure()));
+            }
             services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddAuthentication()
                 .AddDeviantArt(d => {
@@ -85,7 +106,9 @@ namespace TextFeedAggregator {
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ApplicationDbContext dataContext) {
+            dataContext.Database.Migrate();
+
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
                 app.UseMigrationsEndPoint();
