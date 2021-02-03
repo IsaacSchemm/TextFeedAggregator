@@ -43,7 +43,8 @@ namespace TextFeedAggregator {
                         connection,
                         new MySqlServerVersion(new Version(5, 7, 9, 0)),
                         mySqlOptions => mySqlOptions
-                            .CharSetBehavior(CharSetBehavior.NeverAppend));
+                            .CharSetBehavior(CharSetBehavior.NeverAppend)
+                            .EnableRetryOnFailure());
                 });
             } else {
                 services.AddDbContext<ApplicationDbContext>(options =>
