@@ -40,7 +40,7 @@ namespace TextFeedAggregator {
                     string connectionString2 = $@"server={server};userid={dbusername};password={dbpassword};database={dbname};port={port};pooling = false; convert zero datetime=True;";
 
                     options.UseMySql(
-                        connectionString2,
+                        connection,
                         new MySqlServerVersion(new Version(5, 7, 9, 0)),
                         mySqlOptions => mySqlOptions
                             .CharSetBehavior(CharSetBehavior.NeverAppend));
